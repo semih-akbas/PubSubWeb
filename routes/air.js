@@ -7,10 +7,6 @@ var router = express.Router();
 var socket = null;
 var logPath = __dirname + "/../cpuTempLog.txt";
 
-
-
-
-
 //BASE_URL/diagnostics
 router.get('/', function(req, res) {   
     console.log("I am at air.js");

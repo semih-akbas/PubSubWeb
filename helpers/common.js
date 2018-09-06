@@ -10,7 +10,8 @@ const util = require('util');
 var logAirQuality = function (maxLogCount, socket, airQuality) {
     var time = moment().format('YYYY-MM-DD hh:mm:ss');
     var logPath = __dirname + "/../cpuAirQualityLog.txt";
-    
+    socket.emit('refresh-airtemp',airQuality, dataArr);
+
     var array = [];
     if(fs.existsSync(logPath))
     {
@@ -29,7 +30,6 @@ var logAirQuality = function (maxLogCount, socket, airQuality) {
         fileContent = fileContent + array[i] + "\r\n";
     }
     fs.writeFileSync(logPath, fileContent);  
-    socket.emit('refresh-airquality',airQuality, dataArr);
 
     return array.length;            
 }
@@ -37,6 +37,7 @@ var logAirQuality = function (maxLogCount, socket, airQuality) {
 var logAirHumidity = function (maxLogCount, socket, humidity) {
     var time = moment().format('YYYY-MM-DD hh:mm:ss');
     var logPath = __dirname + "/../cpuHumidityLog.txt";
+    socket.emit('refresh-humidity',humidity, dataArr);
     
     var array = [];
     if(fs.existsSync(logPath))
@@ -56,7 +57,6 @@ var logAirHumidity = function (maxLogCount, socket, humidity) {
         fileContent = fileContent + array[i] + "\r\n";
     }
     fs.writeFileSync(logPath, fileContent);  
-    socket.emit('refresh-humidity',humidity, dataArr);
 
     return array.length;            
 }

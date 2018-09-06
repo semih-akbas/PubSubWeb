@@ -8,7 +8,7 @@ var common      = require('./helpers/common');
 var cors 		= require('cors');
 
 const mqtt 		= require('mqtt');
-const client 	= mqtt.connect('mqtt://192.168.2.71:1883');
+const client 	= mqtt.connect('mqtt://172.16.2.89:1883');
 
 var application_root = __dirname;
 
@@ -17,6 +17,7 @@ var application_root = __dirname;
 const dataInterval = 1000;
 console.log(Date());
 client.on('connect', () => {
+	console.log("Connected to mosquitto client");
     client.subscribe('opcua');
 	/*
     setInterval(function(){
@@ -35,7 +36,7 @@ client.on('message', (topic, message) => {
         case 'opcua':{
 			//console.log(message);
             var data = JSON.parse(message);
-            console.log(Date() + " Humidty: " + data.Nem + " Temperature: " + data.Sicaklik);
+            console.log(Date() + " Humidity: " + data.Nem + " Temperature: " + data.Sicaklik);
             common.logAirQuality(200,io, data.Sicaklik);
             common.logAirHumidity(200,io, data.Nem);
       }

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>PeepGuard</title>
+      <script src="socket.io/socket.io.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+      <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+      <script src = "http://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+      <script src="dist/gauge.js"></script>
+      <script>
+      $(document).ready(function(){
+            var socket = io();
+
+            var opts = {
+              angle: 0.0, // The span of the gauge arc
+              lineWidth: 0.24, // The line thickness
+              radiusScale: 1, // Relative radius
+              pointer: {
+                length: 0.6, // // Relative to gauge radius
+                strokeWidth: 0.035, // The thickness
+                color: '#000000' // Fill color
+              },
+              limitMax: false,     // If false, max value increases automatically if value > maxValue
+              limitMin: false,     // If true, the min value of the gauge will be fixed
+              colorStart: '#6FADCF',   // Colors
+              colorStop: '#8FC0DA',    // just experiment with them
+              strokeColor: '#E0E0E0',  // to see which ones work best for you
+              generateGradient: true,
+              highDpiSupport: true,     // High resolution support
+              staticZones: [
+                {strokeStyle: "#59c4ff", min: 0, max: 10}, // Red from 100 to 130
+                {strokeStyle: "#61c6bb", min: 10, max: 29}, // Yellow
+                {strokeStyle: "#30B32D", min: 30, max: 50}, // Green
+                {strokeStyle: "#FFDD00", min: 50, max: 70}, // Yellow
+                {strokeStyle: "#F03E3E", min: 71, max: 100}  // Red
+              ],
+              staticLabels: {
+                font: "10px sans-serif",  // Specifies font
+                labels: [0, 10, 30, 50 ,70 ,100],  // Print labels at these values
+                color: "#000000",  // Optional: Label text color
+                fractionDigits: 0  // Optional: Numerical precision. 0=round off.
+              },
+              
+            };
+
+            var target = document.getElementById('airquality'); // your canvas element
+            var airQualityGauge = new Gauge(target).setOptions(opts); // create sexy gauge!
+
+            airQualityGauge.maxValue = 100; // set max gauge value
+            airQualityGauge.setMinValue(10);  // Prefer setter over gauge.minValue = 0
+            airQualityGauge.animationSpeed = 32; // set animation speed (32 is default value)
+            airQualityGauge.set(25); // set actual value            
+
+            $("#update_temperature").click(function(){
+              //socket.emit('refresh-temperature');
+            });
+
+            socket.on('refresh-airquality',function(airquality, data){
+              console.log("refresh-airquality: " + airquality + " Data: " + data);
+              
+              airQualityGauge.set(airquality);
+            });
+
+            var targetH = document.getElementById('humidity'); // your canvas element
+            var airHumidityGauge = new Gauge(targetH).setOptions(opts); // create sexy gauge!
+
+            airHumidityGauge.maxValue = 100; // set max gauge value
+            airHumidityGauge.setMinValue(0);  // Prefer setter over gauge.minValue = 0
+            airHumidityGauge.animationSpeed = 32; // set animation speed (32 is default value)
+            airHumidityGauge.set(25); // set actual value            
+
+            socket.on('refresh-humidity',function(humidity, data){
+              console.log("refresh-humidity: " + humidity + " Data: " + data);
+              
+              airHumidityGauge.set(humidity);
+            });
+      });
+      </script>
+    </head>
+    <body>
+      <div style = "padding:20px;" align="center">
+        <h2>OPC UA PubSub: Air data</h2>
+      </div> 
+      <div style="width: 100%;height: 100%;" align="center">
+        <ul style="list-style: none" align="center">
+          <li style="float: left;">
+            <canvas width="250" height="130" id="airquality" style="padding: 20px;"></canvas>
+          </li>
+          <li style="float: left;">
+            <canvas width="250" height="130" id="humidity" style="padding: 20px;"></canvas>
+          </li>
+        </ul>
+      </div> 
+      
+      
+    </body>
+  </html>

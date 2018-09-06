@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>PeepGuard</title>
+      <script src="socket.io/socket.io.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+      <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+      <script src = "http://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+      <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart', 'gauge']});
+        google.charts.setOnLoadCallback(drawCharts);
+
+        var cpuTemperature = 0;
+        var cpuPercentage = 0;
+        var memoryPercentage = 0;
+        var arrCpuTempChart = [
+                                ['Time', 'Temperature(°C)'],
+                                {{{temperature_data}}}
+                               ];
+        var dataCpuTempChart;                     
+        var dataGauge;
+        var gaugeOptions = {
+            title: 'CPU Temperature Trend',
+            curveType: 'function',
+            legend: { position: 'bottom' }
+          };
+        var drawGauges;
+
+        function drawCharts() {
+          dataCpuTempChart = google.visualization.arrayToDataTable(arrCpuTempChart);
+          dataGauge = google.visualization.arrayToDataTable([
+              ['Label', 'Value'],
+              ['CPU Temp',cpuTemperature],
+              ['Memory',memoryPercentage],
+              ['CPU',cpuPercentage]
+            ]);
+          drawTemperatureChart(dataCpuTempChart);
+          drawGauges(0,0);
+        }
+
+        function drawTemperatureChart(data) {
+          dataCpuTempChart = data;
+          var chart = new google.visualization.AreaChart(document.getElementById('cputemp_chart'));  
+          chart.draw(data, gaugeOptions);
+        }
+
+        drawGauges = function (temperature, memory, cpu) {
+          cpuPercentage = cpu;
+          memoryPercentage = memory;
+          cpuTemperature = temperature;
+
+          dataGauge.setValue(0, 1, temperature);
+          dataGauge.setValue(1, 1, memory);
+          dataGauge.setValue(2, 1, cpu);
+          
+          var options = {
+            width: 400, height: 120,
+            redFrom: 90, redTo: 100,
+            yellowFrom:75, yellowTo: 90,
+            minorTicks: 5
+          };
+
+          google.charts.load('current', {'packages':['gauge']});
+          var gauge_chart = new google.visualization.Gauge(document.getElementById('gauge_chart'));
+          gauge_chart.draw(dataGauge, options);
+        }
+        
+      </script>
+      <script>
+      $(document).ready(function(){
+            var socket = io();
+            $("#update_temperature").click(function(){
+              //socket.emit('refresh-temperature');
+            });
+            socket.on('refresh-temperature',function(temperature, data){
+              console.log("refresh-temperature: " + temperature + " Data: " + data);
+              arrCpuTempChart.push(data);
+              dataCpuTempChart = google.visualization.arrayToDataTable(arrCpuTempChart);
+              drawGauges(temperature, memoryPercentage, cpuPercentage);
+              drawTemperatureChart(dataCpuTempChart);
+            });
+            socket.on('refresh-cpu',function(cpu){
+              drawGauges(cpuTemperature, memoryPercentage, cpu);
+            });
+            socket.on('refresh-memory',function(memory){
+              drawGauges(cpuTemperature, memory, cpuPercentage);
+            });
+      });
+      </script>
+    </head>
+    <body>
+      <div style = "padding:20px;">
+        <h2>PeepGuard: Diagnostics</h2>
+      </div>
+      <table>
+          <tr>
+            <td colspan="2">&nbsp;</td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <div id = "gauge_chart"
+              style = "width: 200px;
+                       height: 200px;
+                       padding: 10px;
+                       margin-left:10px;"
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+                <div>{{deneme}}</div>
+                <td>
+                    <div id = "memory_chart"
+                    style = "width: 200px;
+                             height: 200px;
+                             padding: 5px;"
+                    </div>
+                </td>
+            </td>
+          </tr>
+          <tr>
+            <td>
+                <div id = "cputemp_chart"
+                class = "jumbotron"
+                style = "width: 600px;
+                         height: 200px;
+                         padding: 0px;
+                         margin-left:-10px;
+                         margin-top:40px;">
+                </div>
+            </td>
+            <td>
+                <div id = "disk_chart"
+                style = "width: 200px;
+                         height: 200px;
+                         padding: 5px;"
+                </div>
+            </td>
+          </tr>
+     </table>    
+      
+      
+      
+    </body>
+  </html>
